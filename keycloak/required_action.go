@@ -14,19 +14,19 @@ type RequiredAction struct {
  	Enabled       bool              `json:"enabled"`
  	DefaultAction bool              `json:"defaultAction"`
  	Priority      int               `json:"priority"`
- 	Config        map[string]string `json:"config"`
+ 	Config        map[string][]string `json:"config"`
 }
 
 func (requiredActions *RequiredAction) getConfig(val string) string {
 	if len(requiredActions.Config[val]) == 0 {
 		return ""
 	}
-	return requiredActions.Config[val]
+	return requiredActions.Config[val][0]
 }
 
 func (requiredActions *RequiredAction) getConfigOk(val string) (string, bool) {
 	if v, ok := requiredActions.Config[val]; ok {
-		return v, true
+		return v[0], true
 	}
 	return "", false
 }

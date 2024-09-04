@@ -50,7 +50,6 @@ func resourceKeycloakRequiredAction() *schema.Resource {
 			},
 			"config": {
 				Type:     schema.TypeMap,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
 		},
@@ -58,10 +57,13 @@ func resourceKeycloakRequiredAction() *schema.Resource {
 }
 
 func getRequiredActionFromData(data *schema.ResourceData) (*keycloak.RequiredAction, error) {
-	config := make(map[string]string)
- 	for key, value := range data.Get("config").(map[string]interface{}) {
- 		config[key] = value.(string)
- 	}
+	config := map[string][]string{}
+
+	if v, ok := data.GetOk("config"); ok {
+		for key, value := range v.(map[string]interface{}) {
+			config[key] = strings.Split(value.(string), MULTIVALUE_ATTRIBUTE_SEPARATOR)
+		}
+	}
 
 	action := &keycloak.RequiredAction{
 		Id:            fmt.Sprintf("%s/%s", data.Get("realm_id").(string), data.Get("alias").(string)),
@@ -78,6 +80,11 @@ func getRequiredActionFromData(data *schema.ResourceData) (*keycloak.RequiredAct
 }
 
 func setRequiredActionData(data *schema.ResourceData, action *keycloak.RequiredAction) {
+	config := map[string]string{}
+	for k, v := range action.Config {
+		config[k] = strings.Join(v, MULTIVALUE_ATTRIBUTE_SEPARATOR)
+	}
+
 	data.SetId(fmt.Sprintf("%s/%s", action.RealmId, action.Alias))
 	data.Set("realm_id", action.RealmId)
 	data.Set("alias", action.Alias)

@@ -102,9 +102,6 @@ Also, many thanks to all the contributors extending it and approving the license
 
 ## License
 
-This software is licensed under either of the following, at your option:
+This software is licensed under Apache License, Version 2.0, (LICENSE-APACHE-2.0 or https://www.apache.org/licenses/LICENSE-2.0)
 
-- Apache License, Version 2.0, (LICENSE-APACHE-2.0 or https://www.apache.org/licenses/LICENSE-2.0)
-- MIT License (LICENSE-MIT or https://opensource.org/licenses/MIT)
-
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this software by you shall be dual licensed under the MIT License and Apache License, Version 2.0, without any additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this software by you shall be licensed under the Apache License, Version 2.0, without any additional terms or conditions.

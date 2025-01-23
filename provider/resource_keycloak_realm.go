@@ -5,8 +5,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mrparkers/terraform-provider-keycloak/keycloak"
-	"github.com/mrparkers/terraform-provider-keycloak/keycloak/types"
+	"github.com/keycloak/terraform-provider-keycloak/keycloak"
+	"github.com/keycloak/terraform-provider-keycloak/keycloak/types"
 )
 
 var (
@@ -175,6 +175,11 @@ func resourceKeycloakRealm() *schema.Resource {
 				Optional: true,
 			},
 			"user_managed_access": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"organizations_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -739,12 +744,13 @@ func getRealmFromData(data *schema.ResourceData) (*keycloak.Realm, error) {
 	}
 
 	realm := &keycloak.Realm{
-		Id:                realmId.(string),
-		Realm:             data.Get("realm").(string),
-		Enabled:           data.Get("enabled").(bool),
-		DisplayName:       data.Get("display_name").(string),
-		DisplayNameHtml:   data.Get("display_name_html").(string),
-		UserManagedAccess: data.Get("user_managed_access").(bool),
+		Id:                   realmId.(string),
+		Realm:                data.Get("realm").(string),
+		Enabled:              data.Get("enabled").(bool),
+		DisplayName:          data.Get("display_name").(string),
+		DisplayNameHtml:      data.Get("display_name_html").(string),
+		UserManagedAccess:    data.Get("user_managed_access").(bool),
+		OrganizationsEnabled: data.Get("organizations_enabled").(bool),
 
 		// Login Config
 		RegistrationAllowed:         data.Get("registration_allowed").(bool),
@@ -1179,6 +1185,7 @@ func setRealmData(data *schema.ResourceData, realm *keycloak.Realm) {
 	data.Set("display_name", realm.DisplayName)
 	data.Set("display_name_html", realm.DisplayNameHtml)
 	data.Set("user_managed_access", realm.UserManagedAccess)
+	data.Set("organizations_enabled", realm.OrganizationsEnabled)
 
 	// Login Config
 	data.Set("registration_allowed", realm.RegistrationAllowed)
@@ -1384,6 +1391,11 @@ func resourceKeycloakRealmCreate(ctx context.Context, data *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
+	err = meta.(*keycloak.KeycloakClient).Refresh(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	setRealmData(data, realm)
 
 	return resourceKeycloakRealmRead(ctx, data, meta)
@@ -1397,7 +1409,7 @@ func resourceKeycloakRealmRead(ctx context.Context, data *schema.ResourceData, m
 		return handleNotFoundError(ctx, err, data)
 	}
 
-	// we can't trust the API to set this field correctly since it just responds with "**********" this implies a 'password only' change will not detected
+	// we can't trust the API to set this field correctly since it just responds with "**********" this implies a 'password only' change will not be detected
 	if smtpPassword, ok := getRealmSMTPPasswordFromData(data); ok {
 		realm.SmtpServer.Password = smtpPassword
 	}
